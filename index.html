@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Photology — 포토 공정 데이터 플랫폼 문서함</title>
+<style>
+  :root{
+    --bg:#0b1220; --card:#141f38; --card2:#0f1830;
+    --line:#25335a; --text:#e8edf9; --sub:#9db0d6; --muted:#6f83ac;
+    --accent:#4f8dff; --accent2:#38d9c9;
+    font-family:"Segoe UI","Malgun Gothic","Apple SD Gothic Neo",-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;min-height:100vh;background:linear-gradient(180deg,#0b1220,#0d1526 40%,#0b1220);color:var(--text);line-height:1.6;}
+  .wrap{max-width:880px;margin:0 auto;padding:80px 28px 100px;}
+  header{text-align:center;margin-bottom:56px;position:relative;}
+  header .tag{display:inline-block;padding:6px 16px;border:1px solid var(--accent);border-radius:999px;color:var(--accent2);font-size:13px;letter-spacing:.08em;margin-bottom:20px;}
+  header h1{font-size:32px;margin:0 0 12px;font-weight:800;letter-spacing:-.01em;}
+  header h1 span{color:var(--accent2);}
+  header p{color:var(--sub);font-size:15px;max-width:620px;margin:0 auto;}
+
+  .doc-list{display:flex;flex-direction:column;gap:14px;}
+  .doc-card{
+    display:flex;gap:18px;align-items:center;
+    background:linear-gradient(180deg,var(--card),var(--card2));
+    border:1px solid var(--line);border-radius:14px;padding:20px 22px;
+    text-decoration:none;color:inherit;transition:border-color .15s, transform .15s;
+  }
+  .doc-card:hover{border-color:var(--accent);transform:translateY(-1px);}
+  .doc-card .icon{font-size:26px;flex:0 0 auto;width:46px;height:46px;border-radius:10px;background:rgba(79,141,255,.14);display:flex;align-items:center;justify-content:center;}
+  .doc-card .body{flex:1;min-width:0;}
+  .doc-card .body .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px;}
+  .doc-card h2{margin:0;font-size:16px;font-weight:700;}
+  .doc-card .date{font-size:11.5px;color:var(--muted);}
+  .doc-card .status{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 9px;border-radius:999px;border:1px solid var(--accent2);color:var(--accent2);}
+  .doc-card p{margin:0;color:var(--sub);font-size:13.5px;}
+  .doc-card .arrow{flex:0 0 auto;color:var(--muted);font-size:20px;}
+  .doc-card:hover .arrow{color:var(--accent2);}
+
+  .empty-slot{
+    border:1px dashed var(--line);border-radius:14px;padding:20px 22px;
+    color:var(--muted);font-size:13px;text-align:center;
+  }
+
+  footer{margin-top:60px;padding-top:24px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px;text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="tag">시스템개발 지원파트 · Internal</span>
+    <h1>Photology — <span>포토 공정 데이터 플랫폼</span> 문서함</h1>
+    <p>ASML 설비 데이터 기반 엔지니어 지원 플랫폼 관련 기획·아키텍처 문서를 모아둔 페이지입니다. 앞으로 문서가 추가될 예정입니다.</p>
+  </header>
+
+  <div class="doc-list">
+    <a class="doc-card" href="asml_platform_report.html">
+      <div class="icon">📐</div>
+      <div class="body">
+        <div class="top">
+          <h2>ASML 설비 데이터 엔지니어 지원 플랫폼</h2>
+          <span class="status">Draft</span>
+        </div>
+        <p>두괄식 결론, 인터랙티브 아키텍처 다이어그램, 차별점 비교, A2A 구조 상세를 담은 임원 보고용 발표자료</p>
+      </div>
+      <div class="arrow">→</div>
+    </a>
+
+    <div class="empty-slot">추가 문서는 여기에 계속 등록될 예정입니다</div>
+  </div>
+
+  <footer>Photology internal docs · 마지막 갱신 2026-09-10</footer>
+</div>
+</body>
+</html>
