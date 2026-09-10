@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASML 설비 데이터 엔지니어 지원 플랫폼</title>
+<style>
+  :root{
+    --bg:#0b1220; --card:#141f38; --card2:#0f1830;
+    --line:#25335a; --text:#e8edf9; --sub:#9db0d6; --muted:#6f83ac;
+    --accent:#4f8dff; --accent2:#38d9c9; --warn:#ffb454; --danger:#ff6b6b; --good:#5fd97a;
+    --radius:14px;
+    font-family:"Segoe UI","Malgun Gothic","Apple SD Gothic Neo",-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:linear-gradient(180deg,#0b1220,#0d1526 40%,#0b1220);color:var(--text);line-height:1.6;}
+  .wrap{max-width:1220px;margin:0 auto;padding:0 28px 100px;}
+  header.cover{
+    padding:70px 28px 50px;text-align:center;position:relative;overflow:hidden;
+    background:radial-gradient(1200px 500px at 50% -10%, rgba(79,141,255,.28), transparent 60%);
+    border-bottom:1px solid var(--line);
+  }
+  header.cover .tag{display:inline-block;padding:6px 16px;border:1px solid var(--accent);border-radius:999px;color:var(--accent2);font-size:13px;letter-spacing:.08em;margin-bottom:20px;}
+  header.cover h1{font-size:36px;margin:0 0 14px;font-weight:800;letter-spacing:-.01em;}
+  header.cover h1 span{color:var(--accent2);}
+  header.cover p.sub{font-size:16px;color:var(--sub);max-width:780px;margin:0 auto;}
+  header.cover .meta{margin-top:26px;font-size:13px;color:var(--muted);}
+
+  /* 두괄식 결론 배너 */
+  .verdict{max-width:1000px;margin:-34px auto 0;position:relative;z-index:2;padding:0 28px;}
+  .verdict .box{
+    background:linear-gradient(135deg, rgba(79,141,255,.16), rgba(56,217,201,.10));
+    border:1px solid var(--accent2);border-radius:18px;padding:26px 30px;
+    box-shadow:0 20px 50px rgba(0,0,0,.35);
+  }
+  .verdict .box .k{font-size:11px;color:var(--accent2);letter-spacing:.14em;font-weight:800;text-transform:uppercase;margin-bottom:10px;}
+  .verdict .box .headline{font-size:19px;font-weight:800;line-height:1.55;}
+  .verdict .box .headline b{color:var(--accent2);}
+  .verdict3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px;}
+  @media(max-width:860px){.verdict3{grid-template-columns:1fr;}}
+  .verdict3 .v-item{background:rgba(11,18,32,.5);border:1px solid var(--line);border-radius:10px;padding:14px 16px;font-size:13.5px;color:var(--sub);}
+  .verdict3 .v-item b{display:block;color:var(--text);font-size:14px;margin-bottom:4px;}
+
+  nav.toc{position:sticky;top:0;z-index:50;background:rgba(11,18,32,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);margin-top:40px;}
+  nav.toc .toc-inner{max-width:1220px;margin:0 auto;padding:0 28px;display:flex;gap:2px;overflow-x:auto;}
+  nav.toc a{white-space:nowrap;color:var(--sub);text-decoration:none;font-size:13px;padding:14px 12px;border-bottom:2px solid transparent;}
+  nav.toc a:hover{color:var(--text);border-color:var(--muted);}
+
+  section{padding:60px 0 0;}
+  section:last-of-type{padding-bottom:20px;}
+  .kicker{color:var(--accent2);font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin:0 0 10px;}
+  h2{font-size:26px;margin:0 0 8px;font-weight:800;letter-spacing:-.01em;}
+  h2 .num{color:var(--muted);font-weight:700;margin-right:10px;}
+  p.lead{color:var(--sub);font-size:15px;max-width:900px;margin:0 0 26px;}
+
+  .grid{display:grid;gap:16px;}
+  .grid.cols-2{grid-template-columns:repeat(2,1fr);}
+  .grid.cols-3{grid-template-columns:repeat(3,1fr);}
+  .grid.cols-4{grid-template-columns:repeat(4,1fr);}
+  @media(max-width:900px){.grid.cols-2,.grid.cols-3,.grid.cols-4{grid-template-columns:1fr;}}
+
+  .card{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:var(--radius);padding:20px;}
+  .card h3{margin:0 0 8px;font-size:15.5px;font-weight:700;}
+  .card p{margin:0;color:var(--sub);font-size:13.5px;}
+  .card .icon{font-size:21px;margin-bottom:10px;display:block;}
+
+  /* diagram */
+  .diagram-shell{border:1px solid var(--line);border-radius:var(--radius);background:var(--card2);padding:16px;}
+  .diagram-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;}
+  .diagram-toolbar .hint{font-size:12.5px;color:var(--muted);}
+  .diagram-toolbar button{background:var(--card);border:1px solid var(--line);color:var(--sub);font-size:12.5px;padding:7px 14px;border-radius:8px;cursor:pointer;}
+  .diagram-toolbar button:hover{color:var(--text);border-color:var(--accent);}
+  svg.arch text{fill:var(--text);font-size:11.5px;font-weight:600;}
+  svg.arch text.sub{fill:var(--sub);font-size:10px;font-weight:400;}
+  svg.arch text.layerlbl{fill:var(--muted);font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
+  svg.arch rect.node{fill:var(--card);stroke:var(--line);stroke-width:1.3;cursor:pointer;transition:all .15s ease;}
+  svg.arch rect.node:hover{stroke:var(--accent);}
+  svg.arch rect.node.dashed{fill:rgba(56,217,201,.05);stroke-dasharray:5 4;}
+  svg.arch rect.node.selected{stroke:var(--accent2);stroke-width:2.4;filter:drop-shadow(0 0 6px rgba(56,217,201,.5));}
+  svg.arch rect.node.dim{opacity:.28;}
+  svg.arch g.node.dim text{opacity:.5;}
+  svg.arch path.edge{fill:none;stroke:var(--muted);stroke-width:1.3;opacity:.55;marker-end:url(#arrow);}
+  svg.arch path.edge.dashed{stroke-dasharray:4 4;}
+  svg.arch path.edge.active{stroke:var(--accent2);stroke-width:2.2;opacity:1;marker-end:url(#arrow-active);}
+  svg.arch path.edge.dim{opacity:.08;}
+  svg.arch text.edgelbl{fill:var(--muted);font-size:9px;font-weight:500;}
+  svg.arch text.edgelbl.active{fill:var(--accent2);font-weight:700;}
+  svg.arch text.edgelbl.dim{opacity:.1;}
+
+  .detail-panel{margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:18px 20px;background:var(--card);min-height:64px;}
+  .detail-panel .ph{color:var(--muted);font-size:13.5px;}
+  .detail-panel .dp-title{font-size:15.5px;font-weight:800;margin-bottom:4px;}
+  .detail-panel .dp-tag{display:inline-block;font-size:10.5px;color:var(--accent2);border:1px solid var(--accent2);border-radius:999px;padding:2px 9px;margin-bottom:10px;}
+  .detail-panel .dp-desc{color:var(--sub);font-size:13.5px;margin-bottom:10px;}
+  .detail-panel .dp-links{font-size:12.5px;color:var(--muted);}
+  .detail-panel .dp-links b{color:var(--sub);}
+
+  /* step detail */
+  .steps{counter-reset:step;}
+  .step{display:grid;grid-template-columns:56px 1fr;gap:18px;padding:20px 0;border-bottom:1px solid var(--line);}
+  .step:last-child{border-bottom:none;}
+  .step .num-badge{width:40px;height:40px;border-radius:10px;background:var(--card2);border:1px solid var(--accent);color:var(--accent2);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;}
+  .step h3{margin:0 0 6px;font-size:16px;}
+  .step p{margin:0 0 6px;color:var(--sub);font-size:13.5px;}
+  .step .ex{font-size:12.5px;color:var(--muted);background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:8px 12px;display:inline-block;margin-top:4px;}
+
+  /* compact comparison */
+  .vs-wrap{display:grid;grid-template-columns:1fr auto 1fr;gap:0;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
+  .vs-col{padding:20px 22px;}
+  .vs-col.left{background:var(--card2);}
+  .vs-col.right{background:linear-gradient(180deg, rgba(56,217,201,.08), rgba(56,217,201,.02));}
+  .vs-col h3{margin:0 0 14px;font-size:14px;color:var(--sub);letter-spacing:.03em;}
+  .vs-col.right h3{color:var(--accent2);}
+  .vs-row{display:flex;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:13px;color:var(--sub);align-items:flex-start;}
+  .vs-row:first-of-type{border-top:none;}
+  .vs-col.right .vs-row{color:var(--text);}
+  .vs-row .m{opacity:.6;}
+  .vs-mid{display:flex;align-items:center;justify-content:center;background:var(--bg);color:var(--muted);font-weight:800;font-size:13px;padding:0 14px;}
+
+  .accordion-item{border:1px solid var(--line);border-radius:10px;margin-bottom:10px;overflow:hidden;background:var(--card);}
+  .accordion-item summary{padding:14px 18px;cursor:pointer;font-size:13.5px;font-weight:700;list-style:none;display:flex;justify-content:space-between;align-items:center;}
+  .accordion-item summary::-webkit-details-marker{display:none;}
+  .accordion-item summary .chev{color:var(--muted);transition:transform .15s;}
+  .accordion-item[open] summary .chev{transform:rotate(90deg);}
+  .accordion-item .ac-body{padding:0 18px 16px;color:var(--sub);font-size:13px;}
+
+  /* a2a sequence */
+  .seq{display:flex;gap:0;align-items:stretch;margin:10px 0 18px;overflow-x:auto;}
+  .seq-step{flex:1;min-width:180px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;position:relative;margin-right:26px;}
+  .seq-step:last-child{margin-right:0;}
+  .seq-step::after{content:"→";position:absolute;right:-24px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px;}
+  .seq-step:last-child::after{content:"";}
+  .seq-step .sn{color:var(--accent2);font-weight:800;font-size:12px;margin-bottom:6px;}
+  .seq-step h4{margin:0 0 6px;font-size:13.5px;}
+  .seq-step p{margin:0;font-size:12px;color:var(--sub);}
+
+  .vuln-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:8px;}
+  @media(max-width:900px){.vuln-grid{grid-template-columns:1fr;}}
+  .vuln{border:1px solid var(--danger);border-radius:12px;padding:16px;background:rgba(255,107,107,.06);}
+  .vuln .before{font-size:12px;color:var(--danger);font-weight:700;margin-bottom:6px;}
+  .vuln .after{font-size:12px;color:var(--good);font-weight:700;margin-top:10px;border-top:1px dashed var(--line);padding-top:10px;}
+  .vuln p{margin:0;font-size:13px;color:var(--sub);}
+
+  .usecase{border:1px solid var(--line);border-radius:var(--radius);padding:18px;background:var(--card);display:flex;flex-direction:column;gap:9px;}
+  .usecase .uc-tag{font-size:11px;font-weight:800;color:var(--accent2);letter-spacing:.06em;}
+  .usecase h3{margin:0;font-size:15.5px;}
+  .usecase .flow{font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+  .usecase .flow .stepchip{background:var(--card2);border:1px solid var(--line);border-radius:6px;padding:3px 8px;color:var(--sub);}
+  .usecase .impact{font-size:12.5px;color:var(--sub);border-top:1px solid var(--line);padding-top:9px;margin-top:2px;}
+  .usecase .impact b{color:var(--good);}
+
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  @media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;text-align:center;}
+  .kpi .val{font-size:24px;font-weight:800;color:var(--accent2);}
+  .kpi .lbl{font-size:12px;color:var(--sub);margin-top:6px;}
+
+  .roadmap{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  @media(max-width:900px){.roadmap{grid-template-columns:1fr;}}
+  .rm-col{border:1px solid var(--line);border-radius:var(--radius);padding:20px;background:var(--card);}
+  .rm-col .phase{font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;font-weight:700;}
+  .rm-col h3{margin:6px 0 14px;font-size:16px;}
+  .rm-col ul{margin:0;padding-left:18px;color:var(--sub);font-size:13px;}
+  .rm-col li{margin-bottom:8px;}
+  .rm-col.now{border-color:var(--accent);}
+  .rm-col.mid{border-color:var(--accent2);}
+
+  .footer-note{margin-top:60px;padding-top:24px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px;}
+  .pill{display:inline-block;padding:2px 9px;border-radius:999px;border:1px solid var(--line);color:var(--sub);font-size:11px;margin-right:6px;}
+</style>
+</head>
+<body>
+
+<header class="cover">
+  <span class="tag">시스템개발 지원파트 · 임원 보고용</span>
+  <h1>ASML 설비 데이터,<br><span>포토 공정에 특화된</span> 유일한 플랫폼</h1>
+  <p class="sub">MCP·RAG·Skill을 "만들었다"가 결론이 아닙니다. 무엇을, 왜 다르게 만들었는가가 결론입니다.</p>
+  <div class="meta">2026-09-10 · 포토 공정 데이터 활용 플랫폼 기획</div>
+</header>
+
+<div class="verdict">
+  <div class="box">
+    <div class="k">결론 먼저</div>
+    <div class="headline">사내 수백 개 팀이 <b>범용 MCP·RAG·Skill 스토어</b>를 구호처럼 외치는 지금,
+    본 플랫폼은 <b>ASML 설비의 시계열·로그 데이터를 시맨틱하게 번역하는 전용 계층</b>과
+    <b>파트 경계를 넘는 A2A 협업</b>을 통해, 다른 파트가 흉내낼 수 없는 지점에서 최대생산·최대효율에 기여합니다.</div>
+    <div class="verdict3">
+      <div class="v-item"><b>① 데이터가 다르다</b>텍스트 문서가 아니라 시계열·이벤트·제어이력 — 일반 RAG로는 못 다루는 데이터</div>
+      <div class="v-item"><b>② 범위가 다르다</b>파트 내부 챗봇이 아니라 A2A로 스케줄링·MES 에이전트까지 연결</div>
+      <div class="v-item"><b>③ 역할이 다르다</b>"우리 파트 앱"이 아니라 타 파트가 갖다 쓰는 사내 표준 인프라</div>
+    </div>
+  </div>
+</div>
+
+<nav class="toc">
+  <div class="toc-inner">
+    <a href="#arch">01 아키텍처</a>
+    <a href="#steps">02 단계별 상세</a>
+    <a href="#diff">03 차별점 비교</a>
+    <a href="#a2a">04 A2A 구조</a>
+    <a href="#logs">05 로그 6종</a>
+    <a href="#usecases">06 유즈케이스</a>
+    <a href="#impact">07 생산·효율 기여</a>
+    <a href="#roadmap">08 로드맵</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <!-- 01 ARCHITECTURE -->
+  <section id="arch">
+    <p class="kicker">Big Picture · Interactive</p>
+    <h2><span class="num">01</span>전체 아키텍처 — 노드를 클릭해서 연결관계를 확인하세요</h2>
+    <p class="lead">6종 설비 로그가 게이트웨이 → 시맨틱 융합 → 인지/판정 → A2A 오케스트레이션 → 엔지니어 인터페이스까지 흐르는 전 구간입니다.
+    회색 점선은 타 파트 에이전트, 청록색 점선은 지연시간을 줄이는 실시간 우회 경로입니다.</p>
+
+    <div class="diagram-shell">
+      <div class="diagram-toolbar">
+        <span class="hint">💡 박스를 클릭하면 연결된 흐름과 설명이 아래 패널에 표시됩니다</span>
+        <button id="resetBtn">전체 보기로 초기화</button>
+      </div>
+      <svg id="archSvg" class="arch" viewBox="0 0 1200 1020" role="img" aria-label="ASML 설비 데이터 플랫폼 아키텍처: 로그 6종에서 시작해 게이트웨이, 시맨틱 융합, 인지 판정, A2A 오케스트레이션을 거쳐 엔지니어 인터페이스와 타 부서 에이전트로 이어지는 데이터 흐름"></svg>
+      <div class="detail-panel" id="detailPanel">
+        <div class="ph">← 노드를 클릭하면 해당 요소의 역할과 연결 관계가 여기에 표시됩니다.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 STEP DETAIL -->
+  <section id="steps">
+    <p class="kicker">Step by Step</p>
+    <h2><span class="num">02</span>단계별 상세 설명</h2>
+    <p class="lead">위 다이어그램의 6개 레이어를 데이터가 지나가는 순서대로 풀어서 설명합니다.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="num-badge">L1</div>
+        <div>
+          <h3>소스 — 설비가 실시간으로 쏟아내는 6종 로그</h3>
+          <p>상태조회·이벤트보고·주기수집·원격제어·알람보고·통신제어. 지금은 부서원이 시간 단위로 설비마다 개별적으로 찾아 쓰고 있는 원시 데이터입니다.</p>
+          <span class="ex">예: 주기수집 데이터의 상당수 필드는 ASML 암호화 스키마로 잠겨 있어 그대로는 활용 불가</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num-badge">L2</div>
+        <div>
+          <h3>게이트웨이 — 암호화 해제와 표준 접근 창구</h3>
+          <p>암호화 필드는 언락 파이프라인을 거치고, 6종 로그 전체는 MCP 게이트웨이를 통해 표준 인터페이스로 노출됩니다. 동시에 필드 의미는 현업 엔지니어가 검증하는 시맨틱 카탈로그에 누적됩니다.</p>
+          <span class="ex">이 계층부터 이미 타 파트 에이전트도 재사용 가능 — "우리만의 데이터"가 아니라 "사내 표준 접근 경로"</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num-badge">L3</div>
+        <div>
+          <h3>시맨틱 융합 — 텍스트가 아닌 데이터를 LLM이 읽게 번역</h3>
+          <p>시계열 인코더가 주기수집·상태 패턴을 벡터화하고, 지식그래프가 필드-공정-원인 관계를 연결하며, RAG가 과거 사례·매뉴얼에서 근거 문서를 찾습니다. 일반적인 "문서 임베딩 RAG"와 결정적으로 다른 지점입니다.</p>
+          <span class="ex">예: twin scan skew 패턴을 시계열 인코더가 벡터화 → 지식그래프에서 유사 과거 사례와 연결</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num-badge">L4</div>
+        <div>
+          <h3>인지/판정 — 근거 기반 결론 + 실시간 1차 필터</h3>
+          <p>LLM 판정엔진이 spec in/out과 원인 후보를 근거 로그와 함께 제시하고, 엔지니어가 등록한 도메인 로직은 Skill 레지스트리에 쌓입니다. 알람처럼 지연이 치명적인 경우 엣지 경량모델이 설비 근처에서 먼저 걸러냅니다.</p>
+          <span class="ex">엣지 모델은 A2A를 거치지 않고 알람보고 인터페이스로 직행하는 fast path를 가집니다(아래 다이어그램 점선 참고)</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num-badge">L5</div>
+        <div>
+          <h3>A2A 오케스트레이션 — 파트 경계를 넘는 유일한 구간</h3>
+          <p>판정 결과가 파트 내부에서 끝나지 않고, 표준 프로토콜로 스케줄링·MES·설비관리 에이전트에게 위임될 수 있습니다. 구체적인 구조와 해결하는 문제는 04 섹션에서 별도로 다룹니다.</p>
+          <span class="ex">다른 파트의 "우리 챗봇"과 근본적으로 갈라지는 지점</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num-badge">L6</div>
+        <div>
+          <h3>인터페이스 — 엔지니어가 실제로 마주하는 화면</h3>
+          <p>자연어 챗봇, 알람 자동보고, 대시보드, 주간 리포트 자동생성으로 결과가 도달합니다. 엔지니어 입장에서는 "물어보면 답이 오는" 경험이지만, 그 뒤에는 위의 5단계가 표준화되어 돌아갑니다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 DIFF -->
+  <section id="diff">
+    <p class="kicker">Differentiation</p>
+    <h2><span class="num">03</span>"우리도 MCP/RAG 한다"와 무엇이 다른가</h2>
+    <p class="lead">한 문장 비교: 저들은 파트 안에서 문서를 검색하는 챗봇을 만들고, 우리는 파트 밖으로 데이터·판단을 연결하는 인프라를 만듭니다.</p>
+    <div class="vs-wrap">
+      <div class="vs-col left">
+        <h3>타 파트 · 일반적 MCP/RAG/Skill 스토어</h3>
+        <div class="vs-row"><span class="m">📄</span>텍스트 문서 임베딩 검색 중심</div>
+        <div class="vs-row"><span class="m">🏠</span>파트 내부 챗봇 1개로 종료</div>
+        <div class="vs-row"><span class="m">🧩</span>개발팀이 직접 라벨링 시도 (도메인 부족 리스크)</div>
+        <div class="vs-row"><span class="m">🔓</span>이미 열려있는 datalake API 재활용</div>
+        <div class="vs-row"><span class="m">🤖</span>LLM 1회 호출 + 단순 RAG</div>
+        <div class="vs-row"><span class="m">🎯</span>지향점: "우리 파트의 AI 앱"</div>
+      </div>
+      <div class="vs-mid">VS</div>
+      <div class="vs-col right">
+        <h3>본 플랫폼 · ASML 데이터 특화</h3>
+        <div class="vs-row">⏱️ 시계열·이벤트·제어이력 등 이종 로그를 시맨틱 번역 후 융합</div>
+        <div class="vs-row">🔗 A2A로 파트 경계를 넘어 타 부서 에이전트와 협업</div>
+        <div class="vs-row">✅ 현업 엔지니어가 검증형 크라우드소싱으로 온톨로지를 채움</div>
+        <div class="vs-row">🔐 ASML 암호화 데이터 언락까지 포함한 게이트웨이 제공</div>
+        <div class="vs-row">⚡ 엣지 경량모델 + 클라우드 대형모델 하이브리드, 실시간성 확보</div>
+        <div class="vs-row">🏗️ 지향점: 사내 ASML 데이터/도구 표준 인프라</div>
+      </div>
+    </div>
+
+    <div style="margin-top:22px;">
+      <details class="accordion-item">
+        <summary>왜 데이터 형태 차이가 결정적인가 <span class="chev">▸</span></summary>
+        <div class="ac-body">문서 임베딩 RAG는 수치 시계열의 "패턴"을 이해하지 못합니다. Twin scan skew처럼 여러 파라미터가 시간에 따라 함께 움직이는 현상은 텍스트 검색이 아니라 시계열 인코딩 + 지식그래프 기반 인과 추론이 필요합니다. 이건 아키텍처를 처음부터 다르게 설계해야 하는 문제이지, 같은 RAG 스택에 데이터만 바꿔 넣는다고 해결되지 않습니다.</div>
+      </details>
+      <details class="accordion-item">
+        <summary>왜 "범위" 차이가 조직적으로 중요한가 <span class="chev">▸</span></summary>
+        <div class="ac-body">파트 내부에서 끝나는 챗봇은 그 파트의 생산성만 올립니다. 유휴시간·스케줄 조정처럼 실제 최대생산에 영향을 주는 결정은 대부분 파트 경계를 넘어야 발생합니다. A2A는 이 경계를 자동화된 요청-위임으로 없애는 유일한 장치입니다.</div>
+      </details>
+      <details class="accordion-item">
+        <summary>왜 도메인 지식 확보 방식이 다른가 <span class="chev">▸</span></summary>
+        <div class="ac-body">우리 부서는 포토 공정 도메인 전문가가 아닙니다. 그래서 온톨로지를 직접 채우는 대신, 현업 엔지니어가 검증하고 등록하는 구조를 만들어 "모르는 데이터를 아는 사람이 채우는" 확장 가능한 구조로 설계했습니다.</div>
+      </details>
+    </div>
+  </section>
+
+  <!-- 04 A2A -->
+  <section id="a2a">
+    <p class="kicker">Concept Deep-dive</p>
+    <h2><span class="num">04</span>A2A는 실제로 어떻게 구성되고, 어떤 취약점을 해결하는가</h2>
+    <p class="lead">A2A는 MCP·Skill·Agent를 대체하는 게 아니라, 이미 만든 세 가지 자산을 <b style="color:var(--text)">파트 경계 너머로 조립 가능하게</b> 만드는 프로토콜 레이어입니다. 4단계로 작동합니다.</p>
+
+    <div class="seq">
+      <div class="seq-step"><div class="sn">STEP 1</div><h4>능력 공개 (Agent Card)</h4><p>포토 에이전트가 "내가 할 수 있는 일"(예: 유휴 예측, spec 판정)을 표준 JSON 카드로 게시</p></div>
+      <div class="seq-step"><div class="sn">STEP 2</div><h4>탐색 &amp; 매칭</h4><p>스케줄링 에이전트가 "이 문제를 풀 수 있는 에이전트"를 카드 목록에서 검색·매칭</p></div>
+      <div class="seq-step"><div class="sn">STEP 3</div><h4>Task 위임</h4><p>표준 메시지 포맷으로 작업을 위임 — 사전 협의된 API 없이도 동적으로 요청 가능</p></div>
+      <div class="seq-step"><div class="sn">STEP 4</div><h4>실행 &amp; 승인 게이트</h4><p>결과 반환 전, 리스크가 있는 조치는 사람 승인(HITL)을 거치고 모든 요청·응답이 로그로 남음</p></div>
+    </div>
+
+    <p class="lead" style="margin-top:4px;">이 구조가 없다면 발생하는 취약점과, A2A가 이를 어떻게 해결하는지입니다.</p>
+    <div class="vuln-grid">
+      <div class="vuln">
+        <div class="before">🚫 취약점 1 · 파트 간 사일로</div>
+        <p>각 파트가 자기 에이전트만 만들어서, 서로 어떤 능력이 있는지 모른 채 같은 기능을 중복 개발함.</p>
+        <div class="after">✅ Agent Card로 능력을 표준 공개 → 검색 가능해져 중복 개발 방지</div>
+      </div>
+      <div class="vuln">
+        <div class="before">🚫 취약점 2 · 수동 조율 지연</div>
+        <p>설비 유휴가 예측돼도, 사람이 메신저·전화로 타 부서에 요청해야 스케줄이 조정됨 — 대응이 항상 늦음.</p>
+        <div class="after">✅ 표준 Task 위임으로 에이전트 간 즉시 요청 → 유휴시간 대응 지연 최소화</div>
+      </div>
+      <div class="vuln">
+        <div class="before">🚫 취약점 3 · 책임 추적 불가</div>
+        <p>누가 언제 무슨 근거로 어떤 조정을 요청했는지 기록이 남지 않아, 문제 발생 시 원인 추적이 어려움.</p>
+        <div class="after">✅ 모든 요청·응답이 로그화되어 감사 추적(audit trail) 가능 — 거버넌스 확보</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 LOGS -->
+  <section id="logs">
+    <p class="kicker">Raw Material</p>
+    <h2><span class="num">05</span>부서원이 원하는 6종 설비 로그</h2>
+    <p class="lead">현재 시간 단위로 설비마다 개별적으로 찾아 쓰고 있는 6가지 로그 유형을, 하나의 표준 파이프라인(01 다이어그램의 L1)으로 묶습니다.</p>
+    <div class="grid cols-3">
+      <div class="card"><h3>① 상태조회</h3><p>설비 현재 가동/대기/이상 스냅샷. 실시간 헬스체크·대시보드 기초 데이터.</p></div>
+      <div class="card"><h3>② 이벤트보고</h3><p>공정 진행 중 발생 이벤트 로그. 원인분석·ID Dump의 핵심 입력.</p></div>
+      <div class="card"><h3>③ 주기수집</h3><p>일정 주기로 쌓이는 파라미터 시계열. Focal Curve·Final XY 판정의 원천.</p></div>
+      <div class="card"><h3>④ 원격제어</h3><p>엔지니어/시스템이 설비에 내린 제어 명령 이력.</p></div>
+      <div class="card"><h3>⑤ 알람보고</h3><p>이상 발생 시 즉시 발생. 가장 시급한 자동 1차 분석 대상.</p></div>
+      <div class="card"><h3>⑥ 통신제어</h3><p>설비-시스템 간 통신 상태/오류. 원격제어 반영 여부 검증 근거.</p></div>
+    </div>
+  </section>
+
+  <!-- 06 USE CASES -->
+  <section id="usecases">
+    <p class="kicker">Use Cases</p>
+    <h2><span class="num">06</span>대표 유즈케이스</h2>
+    <div class="grid cols-2">
+      <div class="usecase">
+        <div class="uc-tag">UC1 · 알람 대응 자동화</div>
+        <h3>알람 발생 → 원인 후보 자동 제시</h3>
+        <div class="flow"><span class="stepchip">알람보고</span>→<span class="stepchip">이벤트보고 대조</span>→<span class="stepchip">과거 유사사례 RAG 검색</span>→<span class="stepchip">원인 후보 + 근거 인용</span></div>
+        <div class="impact">엔지니어의 로그 탐색 시간을 없애 <b>알람 대응(MTTR) 단축</b>에 기여.</div>
+      </div>
+      <div class="usecase">
+        <div class="uc-tag">UC2 · 자연어 상태 리포트</div>
+        <h3>"이번 주 A라인 상태 요약해줘"</h3>
+        <div class="flow"><span class="stepchip">상태조회+주기수집</span>→<span class="stepchip">시계열 패턴 요약</span>→<span class="stepchip">자연어 리포트</span></div>
+        <div class="impact">수작업 취합을 자동화해 <b>보고 준비 시간 절감</b>.</div>
+      </div>
+      <div class="usecase">
+        <div class="uc-tag">UC3 · 제어 명령 검증</div>
+        <h3>원격제어가 의도대로 반영됐는가</h3>
+        <div class="flow"><span class="stepchip">원격제어 로그</span>→<span class="stepchip">통신제어 대조</span>→<span class="stepchip">불일치 즉시 알림</span></div>
+        <div class="impact">제어 실패의 뒤늦은 발견을 줄여 <b>rework·품질 리스크 감소</b>.</div>
+      </div>
+      <div class="usecase">
+        <div class="uc-tag">UC4 · Spec 판정 자동화</div>
+        <h3>Focal Curve / Final XY 자동 in·out 판정</h3>
+        <div class="flow"><span class="stepchip">주기수집 실측치+spec</span>→<span class="stepchip">LLM 판정</span>→<span class="stepchip">근거 인용 결론</span></div>
+        <div class="impact">반복 판정 업무를 줄이고 <b>판정 일관성 확보</b>.</div>
+      </div>
+      <div class="usecase" style="grid-column:1/-1;">
+        <div class="uc-tag">UC5 · A2A 파트간 협업 (핵심 차별 유즈케이스)</div>
+        <h3>"이 설비 곧 유휴 예상 — 스케줄링 조정 검토해줘"</h3>
+        <div class="flow"><span class="stepchip">포토 에이전트: 유휴 예측</span>→<span class="stepchip">A2A Task 위임</span>→<span class="stepchip">스케줄링/MES 에이전트: 대안 검토</span>→<span class="stepchip">사람 승인 후 반영</span></div>
+        <div class="impact">사람이 부서 간 연락하던 조율을 에이전트 협업으로 대체 — <b>유휴시간 최소화에 직접 기여</b>.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 IMPACT -->
+  <section id="impact">
+    <p class="kicker">Business Impact</p>
+    <h2><span class="num">07</span>최대생산·최대효율 기여 포인트</h2>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="val">Idle ↓</div><div class="lbl">UC5 A2A 스케줄 조율로 설비 idle 조기 발견·재배정</div></div>
+      <div class="kpi"><div class="val">Skew ↓</div><div class="lbl">주기수집 시계열 패턴 이상 조기 탐지 (twin scan skew)</div></div>
+      <div class="kpi"><div class="val">MTTR ↓</div><div class="lbl">알람+이벤트+과거사례 자동 대조로 초동대응 단축</div></div>
+      <div class="kpi"><div class="val">탐색시간 ↓</div><div class="lbl">엔지니어가 로그 6종을 직접 찾던 시간 자체가 생산성 손실</div></div>
+    </div>
+  </section>
+
+  <!-- 08 ROADMAP -->
+  <section id="roadmap">
+    <p class="kicker">Roadmap</p>
+    <h2><span class="num">08</span>단계별 추진안</h2>
+    <div class="roadmap">
+      <div class="rm-col now">
+        <div class="phase">Phase 1 · 단기</div>
+        <h3>로그 통합 &amp; 게이트웨이</h3>
+        <ul><li>로그 6종 표준 스키마 정의 및 MCP 도구화</li><li>암호화 데이터 언락 요청 프로세스 수립</li><li>UC1(알람 대응), UC3(제어 검증) 우선 구현</li></ul>
+      </div>
+      <div class="rm-col mid">
+        <div class="phase">Phase 2 · 중기</div>
+        <h3>시맨틱 융합 &amp; 카탈로그</h3>
+        <ul><li>시계열 인코더 + 지식그래프 융합 레이어 구축</li><li>엔지니어 검증형 온톨로지 카탈로그 오픈</li><li>UC2(리포트), UC4(spec 판정) 확장</li></ul>
+      </div>
+      <div class="rm-col">
+        <div class="phase">Phase 3 · 장기</div>
+        <h3>A2A 오케스트레이션</h3>
+        <ul><li>스케줄링/MES 에이전트와 A2A 연동 PoC</li><li>UC5(파트간 협업) 실증</li><li>디지털트윈 연동 기반 인과 추론 로드맵 착수</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer-note">
+    <span class="pill">Internal Draft</span><span class="pill">시스템개발 지원파트</span>
+    본 문서는 파트 내부 검토 및 방향성 논의를 위한 초안입니다.
+  </div>
+</div>
+
+<script>
+(function(){
+  var NODES = [
+    // sources
+    {id:"status", label:"상태조회", layer:0, title:"상태조회 (Status Query)", tag:"L1 · 소스", desc:"설비 현재 가동/대기/이상 상태 스냅샷. 실시간 헬스체크와 대시보드의 최소 단위 데이터입니다."},
+    {id:"event", label:"이벤트보고", layer:0, title:"이벤트보고 (Event Report)", tag:"L1 · 소스", desc:"공정 진행 중 발생한 이벤트 로그. 원인분석·ID Dump 유즈케이스(UC1)의 핵심 입력입니다."},
+    {id:"periodic", label:"주기수집", layer:0, title:"주기수집 (Periodic Collection)", tag:"L1 · 소스", desc:"일정 주기로 쌓이는 파라미터 시계열. Focal Curve·Final XY spec 판정(UC4)의 원천이며, 다수 필드가 암호화되어 있습니다."},
+    {id:"remote", label:"원격제어", layer:0, title:"원격제어 (Remote Control)", tag:"L1 · 소스", desc:"엔지니어/시스템이 설비에 내린 제어 명령 이력. 통신제어 로그와 대조해 명령 반영 여부를 검증(UC3)합니다."},
+    {id:"alarm", label:"알람보고", layer:0, title:"알람보고 (Alarm Report)", tag:"L1 · 소스", desc:"이상 발생 시 즉시 발생하는 알람. 지연이 가장 치명적이라 엣지 경량모델의 fast path 대상입니다."},
+    {id:"comm", label:"통신제어", layer:0, title:"통신제어 (Communication Control)", tag:"L1 · 소스", desc:"설비-시스템 간 통신 상태/오류. 원격제어 명령이 실제로 반영됐는지 검증하는 근거 데이터입니다."},
+    // gateway
+    {id:"unlock", label:"데이터 언락", layer:1, title:"데이터 언락", tag:"L2 · 게이트웨이", desc:"ASML 암호화 필드를 해제하고 접근 거버넌스를 적용합니다. 다른 파트가 재현하기 가장 어려운 구간입니다."},
+    {id:"mcp", label:"MCP 게이트웨이", layer:1, title:"MCP 게이트웨이", tag:"L2 · 게이트웨이", desc:"6종 로그를 표준 MCP 리소스/도구로 wrapping — 모든 에이전트(우리 파트 포함 타 파트도)가 동일한 방식으로 접근합니다."},
+    {id:"catalog", label:"시맨틱 카탈로그", layer:1, title:"시맨틱 카탈로그", tag:"L2 · 게이트웨이", desc:"필드 의미를 개발팀이 아니라 현업 엔지니어가 직접 검증해서 채우는 크라우드소싱형 온톨로지입니다."},
+    // fusion
+    {id:"ts", label:"시계열 인코더", layer:2, title:"시계열 인코더", tag:"L3 · 시맨틱 융합", desc:"주기수집·상태조회의 수치 패턴을 LLM이 이해 가능한 벡터/토큰으로 변환합니다. 일반 문서 RAG가 다루지 못하는 부분입니다."},
+    {id:"kg", label:"지식그래프", layer:2, title:"지식그래프 (KG)", tag:"L3 · 시맨틱 융합", desc:"필드-공정-원인 관계를 그래프로 연결해, 카탈로그에서 검증된 의미와 시계열 패턴을 하나로 묶습니다."},
+    {id:"rag", label:"RAG 검색", layer:2, title:"RAG 검색", tag:"L3 · 시맨틱 융합", desc:"과거 사례·매뉴얼 등 텍스트 문서에서 판정의 근거가 되는 자료를 검색합니다."},
+    // cognition
+    {id:"llm", label:"LLM 판정엔진", layer:3, title:"LLM 판정엔진", tag:"L4 · 인지/판정", desc:"시계열·지식그래프·RAG의 결과를 종합해 spec in/out 판정과 이상 원인 후보를 근거와 함께 제시합니다."},
+    {id:"skill", label:"Skill 레지스트리", layer:3, title:"Skill 레지스트리", tag:"L4 · 인지/판정", desc:"엔지니어가 등록한 도메인 판단 로직을 저장하고 재사용 가능하게 관리합니다."},
+    {id:"edge", label:"엣지 경량모델", layer:3, title:"엣지 경량모델", tag:"L4 · 인지/판정", desc:"설비 근처에서 실시간 1차 필터링을 수행해 지연시간을 최소화합니다. 알람보고로 바로 이어지는 fast path를 가집니다."},
+    // orchestration
+    {id:"a2a", label:"A2A 오케스트레이션", layer:4, title:"A2A 오케스트레이션", tag:"L5 · 오케스트레이션", desc:"Agent Card 기반으로 능력을 공개·발견·위임하는 파트 간 협업 레이어입니다. 구체적 구조는 04 섹션 참고.", wide:true},
+    {id:"sched", label:"스케줄링 에이전트\n(타 파트)", layer:4, title:"스케줄링 에이전트 (타 파트)", tag:"External", desc:"생산 스케줄을 담당하는 타 파트 에이전트. A2A를 통해 유휴 예측 정보를 받아 대안 job을 검토합니다.", dashed:true},
+    {id:"mes", label:"MES 에이전트\n(타 파트)", layer:4, title:"MES 에이전트 (타 파트)", tag:"External", desc:"생산관리시스템(MES)을 다루는 타 파트 에이전트. 실행 이력과 작업 지시를 A2A로 주고받습니다.", dashed:true},
+    {id:"eqp", label:"설비관리 에이전트\n(타 파트)", layer:4, title:"설비관리 에이전트 (타 파트)", tag:"External", desc:"설비 유지보수를 담당하는 타 파트 에이전트. 이상 징후 정보를 A2A로 공유받습니다.", dashed:true},
+    // interface
+    {id:"chat", label:"챗봇 질의응답", layer:5, title:"챗봇 질의응답", tag:"L6 · 인터페이스", desc:"엔지니어가 자연어로 데이터를 묻고 답을 받는 최종 접점입니다."},
+    {id:"alarm_report", label:"알람 자동보고", layer:5, title:"알람 자동보고", tag:"L6 · 인터페이스", desc:"알람 발생 시 원인 후보를 자동 정리해 보고합니다. 엣지 경량모델의 fast path 도착지입니다."},
+    {id:"dashboard", label:"대시보드", layer:5, title:"대시보드", tag:"L6 · 인터페이스", desc:"설비 상태와 판정 결과를 실시간으로 시각화합니다."},
+    {id:"weekly", label:"주간 리포트\n자동생성", layer:5, title:"주간 리포트 자동생성", tag:"L6 · 인터페이스", desc:"UC2에 해당하는 자동 리포트 생성 기능입니다."}
+  ];
+
+  var EDGES = [
+    ["status","mcp",""],["event","mcp",""],["periodic","unlock","암호화 필드"],
+    ["remote","mcp",""],["alarm","mcp",""],["comm","mcp",""],
+    ["unlock","mcp","해제 후 편입"],
+    ["mcp","catalog","필드 메타데이터"],["mcp","ts","시계열 스트림"],["mcp","kg","구조화 로그"],["mcp","rag","텍스트 로그"],
+    ["catalog","kg","검증된 의미"],
+    ["ts","llm","근거"],["kg","llm","근거"],["rag","llm","근거"],["kg","skill","도메인 규칙"],
+    ["llm","a2a",""],["skill","a2a",""],["edge","a2a",""],
+    ["a2a","sched","Task 위임",true],["a2a","mes","Task 위임",true],["a2a","eqp","Task 위임",true],
+    ["a2a","chat",""],["a2a","dashboard",""],["a2a","weekly",""],
+    ["edge","alarm_report","실시간 fast path",true]
+  ];
+
+  var LAYER_NAMES = ["L1 소스","L2 게이트웨이","L3 시맨틱 융합","L4 인지/판정","L5 오케스트레이션","L6 인터페이스"];
+  var W = 1200, LAYER_H = 150, TOP = 46, NODE_H = 56;
+
+  // layout: group nodes by layer, spread evenly
+  var byLayer = {};
+  NODES.forEach(function(n){ (byLayer[n.layer] = byLayer[n.layer]||[]).push(n); });
+  Object.keys(byLayer).forEach(function(l){
+    var arr = byLayer[l], n = arr.length;
+    var margin = 60;
+    var usable = W - margin*2;
+    arr.forEach(function(node, i){
+      var slot = usable / n;
+      var nw = node.wide ? Math.min(slot*0.9, 300) : Math.min(slot*0.86, 190);
+      node.w = nw;
+      node.x = margin + slot*i + (slot-nw)/2;
+      node.y = TOP + l*LAYER_H;
+      node.h = NODE_H;
+      node.cx = node.x + node.w/2;
+      node.cy = node.y + node.h/2;
+    });
+  });
+  var byId = {}; NODES.forEach(function(n){ byId[n.id]=n; });
+
+  var svgNS = "http://www.w3.org/2000/svg";
+  var svg = document.getElementById("archSvg");
+
+  function el(tag, attrs){
+    var e = document.createElementNS(svgNS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  // defs: arrow markers
+  var defs = el("defs", {});
+  [["arrow","var(--muted)"],["arrow-active","var(--accent2)"]].forEach(function(pair){
+    var marker = el("marker",{id:pair[0], viewBox:"0 0 10 10", refX:"8", refY:"5", markerWidth:"7", markerHeight:"7", orient:"auto-start-reverse"});
+    var path = el("path",{d:"M0,0 L10,5 L0,10 z", fill: pair[1]==="var(--accent2)" ? "#38d9c9" : "#6f83ac"});
+    marker.appendChild(path); defs.appendChild(marker);
+  });
+  svg.appendChild(defs);
+
+  // layer labels
+  for (var li=0; li<6; li++){
+    var t = el("text",{x:14, y: TOP + li*LAYER_H - 14, class:"layerlbl"});
+    t.textContent = LAYER_NAMES[li];
+    svg.appendChild(t);
+  }
+
+  // edges (drawn first, under nodes)
+  var edgeEls = [];
+  EDGES.forEach(function(e){
+    var a = byId[e[0]], b = byId[e[1]], label = e[2], dashed = e[3];
+    if(!a||!b) return;
+    var sameLayer = a.layer === b.layer;
+    var x1,y1,x2,y2;
+    if(sameLayer){
+      x1 = a.cx < b.cx ? a.x+a.w : a.x; y1 = a.cy;
+      x2 = a.cx < b.cx ? b.x : b.x+b.w; y2 = b.cy;
+    } else {
+      x1 = a.cx; y1 = a.y + a.h; x2 = b.cx; y2 = b.y;
+    }
+    var midY = (y1+y2)/2;
+    var d = sameLayer ? ("M"+x1+","+y1+" L"+x2+","+y2) : ("M"+x1+","+y1+" C "+x1+","+midY+" "+x2+","+midY+" "+x2+","+y2);
+    var path = el("path",{d:d, class:"edge"+(dashed?" dashed":""), "data-from":e[0], "data-to":e[1]});
+    svg.appendChild(path);
+    edgeEls.push(path);
+    if(label){
+      var lx = (x1+x2)/2, ly = (y1+y2)/2 - 4;
+      var lt = el("text",{x:lx, y:ly, class:"edgelbl", "text-anchor":"middle","data-from":e[0],"data-to":e[1]});
+      lt.textContent = label;
+      svg.appendChild(lt);
+    }
+  });
+
+  // nodes
+  var nodeGroups = {};
+  NODES.forEach(function(n){
+    var g = el("g",{class:"node", "data-id":n.id});
+    var rect = el("rect",{x:n.x, y:n.y, width:n.w, height:n.h, rx:10, class:"node"+(n.dashed?" dashed":"")});
+    g.appendChild(rect);
+    var lines = n.label.split("\n");
+    lines.forEach(function(line, i){
+      var ty = n.cy + (i - (lines.length-1)/2)*13 + 4;
+      var txt = el("text",{x:n.cx, y:ty, "text-anchor":"middle"});
+      txt.textContent = line;
+      g.appendChild(txt);
+    });
+    g.style.cursor = "pointer";
+    g.addEventListener("click", function(){ selectNode(n.id); });
+    svg.appendChild(g);
+    nodeGroups[n.id] = g;
+  });
+
+  var panel = document.getElementById("detailPanel");
+  var selected = null;
+
+  function connectionsFor(id){
+    var out = [];
+    EDGES.forEach(function(e){
+      if(e[0]===id) out.push({dir:"→", other: byId[e[1]].title, label:e[2]});
+      if(e[1]===id) out.push({dir:"←", other: byId[e[0]].title, label:e[2]});
+    });
+    return out;
+  }
+
+  function selectNode(id){
+    selected = id;
+    var n = byId[id];
+    NODES.forEach(function(nn){
+      var g = nodeGroups[nn.id];
+      var rect = g.querySelector("rect");
+      var isSelf = nn.id === id;
+      var connected = EDGES.some(function(e){ return (e[0]===id && e[1]===nn.id) || (e[1]===id && e[0]===nn.id); });
+      rect.classList.toggle("selected", isSelf);
+      g.classList.toggle("dim", !isSelf && !connected);
+    });
+    edgeEls.forEach(function(p){
+      var f = p.getAttribute("data-from"), t = p.getAttribute("data-to");
+      var touches = f===id || t===id;
+      p.classList.toggle("active", touches);
+      p.classList.toggle("dim", !touches);
+    });
+    svg.querySelectorAll("text.edgelbl").forEach(function(t){
+      var f = t.getAttribute("data-from"), tt = t.getAttribute("data-to");
+      var touches = f===id || tt===id;
+      t.classList.toggle("active", touches);
+      t.classList.toggle("dim", !touches);
+    });
+    var conns = connectionsFor(id);
+    var connHtml = conns.map(function(c){ return "<div>"+c.dir+" <b>"+c.other+"</b>"+(c.label?" — "+c.label:"")+"</div>"; }).join("");
+    panel.innerHTML = '<div class="dp-tag">'+n.tag+'</div><div class="dp-title">'+n.title+'</div><div class="dp-desc">'+n.desc+'</div><div class="dp-links"><b>연결된 흐름</b><br>'+(connHtml||"—")+'</div>';
+  }
+
+  document.getElementById("resetBtn").addEventListener("click", function(){
+    selected = null;
+    NODES.forEach(function(nn){
+      var g = nodeGroups[nn.id];
+      g.querySelector("rect").classList.remove("selected");
+      g.classList.remove("dim");
+    });
+    edgeEls.forEach(function(p){ p.classList.remove("active"); p.classList.remove("dim"); });
+    svg.querySelectorAll("text.edgelbl").forEach(function(t){ t.classList.remove("active"); t.classList.remove("dim"); });
+    panel.innerHTML = '<div class="ph">← 노드를 클릭하면 해당 요소의 역할과 연결 관계가 여기에 표시됩니다.</div>';
+  });
+})();
+</script>
+
+</body>
+</html>
